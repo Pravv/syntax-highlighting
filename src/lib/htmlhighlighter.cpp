@@ -57,10 +57,44 @@ void HtmlHighlighter::setOutputFile(const QString& fileName)
     d->out->setCodec("UTF-8");
 }
 
-void HtmlHighlighter::setOutputFile(FILE *fileHandle)
+void HtmlHighlighter::setOutputFile(FILE* fileHandle)
 {
     d->out.reset(new QTextStream(fileHandle, QIODevice::WriteOnly));
     d->out->setCodec("UTF-8");
+}
+
+void HtmlHighlighter::setOutputString(QString* string)
+{
+    d->out.reset(new QTextStream(string, QIODevice::WriteOnly));
+    d->out->setCodec("UTF-8");
+}
+
+void HtmlHighlighter::highlightString(QString* string)
+{
+    if (!d->out) {
+        qCWarning(Log) << "No output stream defined!";
+        return;
+    }
+
+    State state;
+    *d->out << "<pre";
+    if (theme().textColor(Theme::Normal))
+        *d->out << " style=\"color:" << QColor(theme().textColor(Theme::Normal)).name() << "\"";
+    *d->out << "><code>\n";
+
+    QTextStream in(string);
+    in.setCodec("UTF-8");
+    while (!in.atEnd()) {
+        d->currentLine = in.readLine();
+        state          = highlightLine(d->currentLine, state);
+        *d->out << "\n";
+    }
+
+    *d->out << "</code></pre>\n";
+    d->out->flush();
+
+    d->out.reset();
+    d->file.reset();
 }
 
 void HtmlHighlighter::highlightFile(const QString& fileName)
@@ -92,7 +126,7 @@ void HtmlHighlighter::highlightFile(const QString& fileName)
     in.setCodec("UTF-8");
     while (!in.atEnd()) {
         d->currentLine = in.readLine();
-        state = highlightLine(d->currentLine, state);
+        state          = highlightLine(d->currentLine, state);
         *d->out << "\n";
     }
 

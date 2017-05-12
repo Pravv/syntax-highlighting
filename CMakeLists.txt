@@ -74,6 +74,7 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/KF5SyntaxHighlightingConfigVersion.cmake"
         DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
         COMPONENT Devel)
+add_library(KF5::SyntaxHighlightingTargets STATIC IMPORTED)
 
 install(EXPORT KF5SyntaxHighlightingTargets
         DESTINATION "${CMAKECONFIG_INSTALL_DIR}"

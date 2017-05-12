@@ -31,9 +31,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
-
+//#include <QtGlobal>
 #include <limits>
-
 using namespace KSyntaxHighlighting;
 
 static void initResource()
@@ -41,19 +40,19 @@ static void initResource()
     Q_INIT_RESOURCE(syntax_data);
 }
 
-RepositoryPrivate::RepositoryPrivate() :
-    m_foldingRegionId(0),
-    m_formatId(0)
+RepositoryPrivate::RepositoryPrivate()
+    : m_foldingRegionId(0)
+    , m_formatId(0)
 {
 }
 
-RepositoryPrivate* RepositoryPrivate::get(Repository *repo)
+RepositoryPrivate* RepositoryPrivate::get(Repository* repo)
 {
     return repo->d.get();
 }
 
-Repository::Repository() :
-    d(new RepositoryPrivate)
+Repository::Repository()
+    : d(new RepositoryPrivate)
 {
     initResource();
     d->load(this);
@@ -63,7 +62,7 @@ Repository::~Repository()
 {
     // reset repo so we can detect in still alive definition instances
     // that the repo was deleted
-    foreach (const auto &def, d->m_sortedDefs)
+    foreach (const auto& def, d->m_sortedDefs)
         DefinitionData::get(def)->repo = nullptr;
 }
 
@@ -80,7 +79,7 @@ Definition Repository::definitionForFileName(const QString& fileName) const
     QVector<Definition> candidates;
     for (auto it = d->m_defs.constBegin(); it != d->m_defs.constEnd(); ++it) {
         auto def = it.value();
-        foreach (const auto &pattern, def.extensions()) {
+        foreach (const auto& pattern, def.extensions()) {
             if (WildcardMatcher::exactMatch(name, pattern)) {
                 candidates.push_back(def);
                 break;
@@ -91,7 +90,7 @@ Definition Repository::definitionForFileName(const QString& fileName) const
     if (candidates.isEmpty())
         return Definition();
 
-    std::partial_sort(candidates.begin(), candidates.begin() + 1, candidates.end(), [](const Definition &lhs, const Definition &rhs) {
+    std::partial_sort(candidates.begin(), candidates.begin() + 1, candidates.end(), [](const Definition& lhs, const Definition& rhs) {
         return lhs.priority() > rhs.priority();
     });
 
@@ -108,9 +107,9 @@ QVector<Theme> Repository::themes() const
     return d->m_themes;
 }
 
-Theme Repository::theme(const QString &themeName) const
+Theme Repository::theme(const QString& themeName) const
 {
-    for (const auto &theme : d->m_themes) {
+    for (const auto& theme : d->m_themes) {
         if (theme.name() == themeName) {
             return theme;
         }
@@ -126,14 +125,14 @@ Theme Repository::defaultTheme(Repository::DefaultTheme t)
     return theme(QLatin1String("Default"));
 }
 
-void RepositoryPrivate::load(Repository *repo)
+void RepositoryPrivate::load(Repository* repo)
 {
     auto dirs = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("org.kde.syntax-highlighting/syntax"), QStandardPaths::LocateDirectory);
-    foreach (const auto &dir, dirs)
+    foreach (const auto& dir, dirs)
         loadSyntaxFolder(repo, dir);
     // backward compatibility with Kate
     dirs = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("katepart5/syntax"), QStandardPaths::LocateDirectory);
-    foreach (const auto &dir, dirs)
+    foreach (const auto& dir, dirs)
         loadSyntaxFolder(repo, dir);
 
     loadSyntaxFolder(repo, QStringLiteral(":/org.kde.syntax-highlighting/syntax"));
@@ -141,7 +140,7 @@ void RepositoryPrivate::load(Repository *repo)
     m_sortedDefs.reserve(m_defs.size());
     for (auto it = m_defs.constBegin(); it != m_defs.constEnd(); ++it)
         m_sortedDefs.push_back(it.value());
-    std::sort(m_sortedDefs.begin(), m_sortedDefs.end(), [](const Definition &left, const Definition &right) {
+    std::sort(m_sortedDefs.begin(), m_sortedDefs.end(), [](const Definition& left, const Definition& right) {
         auto comparison = left.translatedSection().compare(right.translatedSection(), Qt::CaseInsensitive);
         if (comparison == 0)
             comparison = left.translatedName().compare(right.translatedName(), Qt::CaseInsensitive);
@@ -150,12 +149,12 @@ void RepositoryPrivate::load(Repository *repo)
 
     // load themes
     dirs = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("org.kde.syntax-highlighting/themes"), QStandardPaths::LocateDirectory);
-    foreach (const auto &dir, dirs)
+    foreach (const auto& dir, dirs)
         loadThemeFolder(dir);
     loadThemeFolder(QStringLiteral(":/org.kde.syntax-highlighting/themes"));
 }
 
-void RepositoryPrivate::loadSyntaxFolder(Repository *repo, const QString &path)
+void RepositoryPrivate::loadSyntaxFolder(Repository* repo, const QString& path)
 {
     if (loadSyntaxFolderFromIndex(repo, path))
         return;
@@ -163,14 +162,14 @@ void RepositoryPrivate::loadSyntaxFolder(Repository *repo, const QString &path)
     QDirIterator it(path, QStringList() << QLatin1String("*.xml"), QDir::Files);
     while (it.hasNext()) {
         Definition def;
-        auto defData = DefinitionData::get(def);
+        auto defData  = DefinitionData::get(def);
         defData->repo = repo;
         if (defData->loadMetaData(it.next()))
             addDefinition(def);
     }
 }
 
-bool RepositoryPrivate::loadSyntaxFolderFromIndex(Repository *repo, const QString &path)
+bool RepositoryPrivate::loadSyntaxFolderFromIndex(Repository* repo, const QString& path)
 {
     QFile indexFile(path + QLatin1String("/index.katesyntax"));
     if (!indexFile.open(QFile::ReadOnly))
@@ -182,9 +181,9 @@ bool RepositoryPrivate::loadSyntaxFolderFromIndex(Repository *repo, const QStrin
         if (!it.value().isObject())
             continue;
         const auto fileName = QString(path + QLatin1Char('/') + it.key());
-        const auto defMap = it.value().toObject();
+        const auto defMap   = it.value().toObject();
         Definition def;
-        auto defData = DefinitionData::get(def);
+        auto defData  = DefinitionData::get(def);
         defData->repo = repo;
         if (defData->loadMetaData(fileName, defMap))
             addDefinition(def);
@@ -192,7 +191,7 @@ bool RepositoryPrivate::loadSyntaxFolderFromIndex(Repository *repo, const QStrin
     return true;
 }
 
-void RepositoryPrivate::addDefinition(const Definition &def)
+void RepositoryPrivate::addDefinition(const Definition& def)
 {
     const auto it = m_defs.constFind(def.name());
     if (it == m_defs.constEnd()) {
@@ -205,7 +204,7 @@ void RepositoryPrivate::addDefinition(const Definition &def)
     m_defs.insert(def.name(), def);
 }
 
-void RepositoryPrivate::loadThemeFolder(const QString &path)
+void RepositoryPrivate::loadThemeFolder(const QString& path)
 {
     QDirIterator it(path, QStringList() << QLatin1String("*.theme"), QDir::Files);
     while (it.hasNext()) {
@@ -215,15 +214,15 @@ void RepositoryPrivate::loadThemeFolder(const QString &path)
     }
 }
 
-static int themeRevision(const Theme &theme)
+static int themeRevision(const Theme& theme)
 {
     auto data = ThemeData::get(theme);
     return data->revision();
 }
 
-void RepositoryPrivate::addTheme(const Theme &theme)
+void RepositoryPrivate::addTheme(const Theme& theme)
 {
-    const auto it = std::lower_bound(m_themes.begin(), m_themes.end(), theme, [](const Theme &lhs, const Theme &rhs) {
+    const auto it = std::lower_bound(m_themes.begin(), m_themes.end(), theme, [](const Theme& lhs, const Theme& rhs) {
         return lhs.name() < rhs.name();
     });
     if (it == m_themes.end() || (*it).name() != theme.name()) {
@@ -234,7 +233,7 @@ void RepositoryPrivate::addTheme(const Theme &theme)
         *it = theme;
 }
 
-quint16 RepositoryPrivate::foldingRegionId(const QString &defName, const QString &foldName)
+quint16 RepositoryPrivate::foldingRegionId(const QString& defName, const QString& foldName)
 {
     const auto it = m_foldingRegionIds.constFind(qMakePair(defName, foldName));
     if (it != m_foldingRegionIds.constEnd())
@@ -252,7 +251,7 @@ quint16 RepositoryPrivate::nextFormatId()
 void Repository::reload()
 {
     qCDebug(Log) << "Reloading syntax definitions!";
-    foreach (const auto &def, d->m_sortedDefs)
+    foreach (const auto& def, d->m_sortedDefs)
         DefinitionData::get(def)->clear();
     d->m_defs.clear();
     d->m_sortedDefs.clear();

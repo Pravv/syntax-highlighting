@@ -33,6 +33,7 @@ endforeach()
 file(APPEND ${qrc_file} "<file alias=\"index.katesyntax\">${CMAKE_CURRENT_BINARY_DIR}/index.katesyntax</file>\n")
 file(APPEND ${qrc_file} "</qresource>\n")
 file(APPEND ${qrc_file} "</RCC>\n")
+install(TARGETS KF5SyntaxHighlighting EXPORT KF5SyntaxHighlightingTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 # generate the index file
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/index.katesyntax"

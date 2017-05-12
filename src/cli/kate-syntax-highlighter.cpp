@@ -15,25 +15,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ksyntaxhighlighting_version.h"
+//#include "ksyntaxhighlighting_version.h"
 
 #include <definition.h>
-#include <definitiondownloader.h>
+//#include <definitiondownloader.h>
 #include <htmlhighlighter.h>
 #include <repository.h>
 #include <theme.h>
 
-#include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QVector>
-
+//#include <QCommandLineParser>
+//#include <QCoreApplication>
+//#include <QVector>
+#include <QString>
 #include <iostream>
+#include <QDebug>
 
 using namespace KSyntaxHighlighting;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    QCoreApplication app(argc, argv);
+    /*  QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("kate-syntax-highlighter"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("kde.org"));
     QCoreApplication::setOrganizationName(QStringLiteral("KDE"));
@@ -96,18 +97,18 @@ int main(int argc, char **argv)
         QObject::connect(&downloader, &DefinitionDownloader::done, &app, &QCoreApplication::quit);
         downloader.start();
         return app.exec();
-    }
+    }*/
 
-    if (parser.positionalArguments().size() != 1)
-        parser.showHelp(1);
-    const auto inFileName = parser.positionalArguments().at(0);
+    //if (parser.positionalArguments().size() != 1)
+    //     parser.showHelp(1);
+    //const auto inFileName = parser.positionalArguments().at(0);
+
+    Repository repo;
 
     Definition def;
-    if (parser.isSet(syntaxName)) {
-        def = repo.definitionForName(parser.value(syntaxName));
-    } else {
-        def = repo.definitionForFileName(inFileName);
-    }
+
+    def = repo.definitionForName(QStringLiteral("C++"));
+
     if (!def.isValid()) {
         std::cerr << "Unknown syntax." << std::endl;
         return 1;
@@ -115,12 +116,17 @@ int main(int argc, char **argv)
 
     HtmlHighlighter highlighter;
     highlighter.setDefinition(def);
-    if (parser.isSet(outputName))
-        highlighter.setOutputFile(parser.value(outputName));
-    else
-        highlighter.setOutputFile(stdout);
-    highlighter.setTheme(repo.theme(parser.value(themeName)));
-    highlighter.highlightFile(inFileName);
 
+    QString out;
+    highlighter.setOutputString(&out);
+
+    highlighter.setTheme(repo.theme(QStringLiteral("Default")));
+    QString input = QStringLiteral("#include <definitiondownloader.h>\n"
+                                   "    std::cout << qPrintable(msg) << std::endl;\n"
+                                   "HtmlHighlighter highlighter;\n"
+                                   "highlighter.setDefinition(def);\n");
+    highlighter.highlightString(&input);
+
+    qDebug() << qPrintable(out);
     return 0;
 }

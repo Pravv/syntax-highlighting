@@ -28,7 +28,8 @@
 class QFile;
 class QTextStream;
 
-namespace KSyntaxHighlighting {
+namespace KSyntaxHighlighting
+{
 
 class HtmlHighlighterPrivate;
 
@@ -38,13 +39,16 @@ public:
     HtmlHighlighter();
     ~HtmlHighlighter();
 
-    void highlightFile(const QString &fileName);
+    void highlightFile(const QString& fileName);
 
-    void setOutputFile(const QString &fileName);
-    void setOutputFile(FILE *fileHandle);
+    void setOutputFile(const QString& fileName);
+    void setOutputFile(FILE* fileHandle);
+
+    void setOutputString(QString* string);
+    void highlightString(QString* string);
 
 protected:
-    void applyFormat(int offset, int length, const Format &format) Q_DECL_OVERRIDE;
+    void applyFormat(int offset, int length, const Format& format) Q_DECL_OVERRIDE;
 
 private:
     std::unique_ptr<HtmlHighlighterPrivate> d;
